@@ -1,0 +1,498 @@
+{
+	"info": {
+		"_postman_id": "8c459f0f-8bba-4e5c-9c02-e2d4d8ea0286",
+		"name": "Applywizz API",
+		"description": "Postman Collection for testing the Applywizz Recruiter Portal backend API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Recruiter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Jane Doe\",\n    \"email\": \"recruiter@applywizz.com\",\n    \"password\": \"securepassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Create a new recruiter account. The response will set a HTTP-only `token` cookie."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Recruiter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extract JWT from cookie and save to environment variable for Bearer token authorization\r",
+									"const cookie = pm.cookies.get('token');\r",
+									"if (cookie) {\r",
+									"    pm.environment.set(\"jwt_token\", cookie);\r",
+									"    console.log(\"Cookie token automatically set to environment variable 'jwt_token'\");\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"recruiter@applywizz.com\",\n    \"password\": \"securepassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticate recruiter. Sets cookie and outputs log."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/user",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"user"
+							]
+						},
+						"description": "Retrieve current logged in user details."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout Recruiter",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Clear the authentication cookie."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboard & Analytics",
+			"item": [
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/dashboard",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"dashboard"
+							]
+						},
+						"description": "Get overall dashboard KPI counters and charts data."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Jobs Management",
+			"item": [
+				{
+					"name": "Import Excel Spreadsheet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Excel file containing job records",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobs/import",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"jobs",
+								"import"
+							]
+						},
+						"description": "Upload a `.xlsx` spreadsheet of job postings. Normalizes values and detects duplicate sets."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobs?search=engineer&isDuplicate=false&limit=10&page=1&sortBy=postedDate&sortOrder=desc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"jobs"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "engineer",
+									"description": "Full-text or partial keyword filter"
+								},
+								{
+									"key": "company",
+									"value": "google",
+									"description": "Filter by company name",
+									"disabled": true
+								},
+								{
+									"key": "location",
+									"value": "Bangalore",
+									"description": "Filter by location name",
+									"disabled": true
+								},
+								{
+									"key": "employmentType",
+									"value": "Full-time",
+									"description": "Full-time, Part-time, Contract, Internship, Temporary, Other",
+									"disabled": true
+								},
+								{
+									"key": "remote",
+									"value": "true",
+									"description": "Filter remote jobs",
+									"disabled": true
+								},
+								{
+									"key": "experience",
+									"value": "3",
+									"description": "Filter by experience min/max match",
+									"disabled": true
+								},
+								{
+									"key": "salaryMin",
+									"value": "50000",
+									"description": "Minimum salary boundary",
+									"disabled": true
+								},
+								{
+									"key": "salaryMax",
+									"value": "120000",
+									"description": "Maximum salary boundary",
+									"disabled": true
+								},
+								{
+									"key": "isDuplicate",
+									"value": "false",
+									"description": "Show/hide duplicates (true / false)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Results per page"
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page offset index"
+								},
+								{
+									"key": "sortBy",
+									"value": "postedDate",
+									"description": "postedDate, salaryMin, experienceMin, title"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc",
+									"description": "asc / desc"
+								}
+							]
+						},
+						"description": "Search and filter job postings with pagination."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Job Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobs/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"jobs",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "REPLACE_WITH_JOB_ID",
+									"description": "Target job object ID"
+								}
+							]
+						},
+						"description": "Retrieve complete job specifications. Shows related duplicate listings if it is canonical."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Duplicates Resolver",
+			"item": [
+				{
+					"name": "Get Duplicate Groups",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/duplicates",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"duplicates"
+							]
+						},
+						"description": "Fetch duplicate sets grouped by their canonical parent."
+					},
+					"response": []
+				},
+				{
+					"name": "Resolve Duplicate Group",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"resolve_unique\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/duplicates/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"duplicates",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "REPLACE_WITH_JOB_ID",
+									"description": "The target duplicate job object ID (child, not canonical)"
+								}
+							]
+						},
+						"description": "Resolve a near-duplicate job listing.\n\nActions:\n- `resolve_unique`: Re-classifies the child duplicate as a unique canonical listing.\n- `confirm`: Confirms duplicate status without DB modification."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "AI Resume Tailor Agent",
+			"item": [
+				{
+					"name": "Tailor Resume Against Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"jobId\": \"REPLACE_WITH_JOB_ID\",\n    \"resumeText\": \"John Doe\\nSoftware Engineer\\n\\nSkills: React, Node.js, Express, MongoDB, JavaScript\\n\\nExperience:\\n- Developed full stack web applications with 3+ years experience.\\n- Maintained SQL and NoSQL database query architectures.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/resume/tailor",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"resume",
+								"tailor"
+							]
+						},
+						"description": "Upload/Paste resume plain text and target jobId to output a match score, missing skills, strengths, weaknesses, and optimization guidelines."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

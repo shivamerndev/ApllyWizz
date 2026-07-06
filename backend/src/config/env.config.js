@@ -6,7 +6,8 @@ export const {
   MONGO_URI,
   NODE_ENV,
   JWT_SECRET,
-  CLIENT_URL
+  CLIENT_URL,
+  GEMINI_API_KEY
 } = process.env
 
 const checkVariables = {
@@ -14,7 +15,8 @@ const checkVariables = {
   MONGO_URI,
   NODE_ENV,
   JWT_SECRET,
-  CLIENT_URL
+  CLIENT_URL,
+  GEMINI_API_KEY
 }
 
 Object.entries(checkVariables).forEach(([key, value]) => {

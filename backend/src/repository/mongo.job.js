@@ -1,9 +1,8 @@
 import { Job } from "../models/job.model.js";
 
 class MongoJobRepository {
-  /**
-   * Creates a single job listing
-   */
+
+
   async createJob(jobData) {
     const job = new Job(jobData);
     return await job.save();
@@ -17,9 +16,7 @@ class MongoJobRepository {
     return await Job.bulkWrite(operations);
   }
 
-  /**
-   * Finds jobs with rich search, filter, sorting, and pagination
-   */
+
   async findJobs({ search, company, location, employmentType, remote, experience, salaryMin, salaryMax, isDuplicate, page = 1, limit = 10, sortBy = "postedDate", sortOrder = "desc" }) {
     const query = {};
 
@@ -93,7 +90,7 @@ class MongoJobRepository {
 
     // Pagination
     const skip = (page - 1) * limit;
-    
+
     const [jobs, total] = await Promise.all([
       Job.find(query).sort(sort).skip(skip).limit(limit).exec(),
       Job.countDocuments(query).exec(),
@@ -107,9 +104,7 @@ class MongoJobRepository {
     };
   }
 
-  /**
-   * Find a specific job by ID, including its duplicate details
-   */
+
   async findJobById(id) {
     const job = await Job.findById(id).exec();
     if (!job) return null;
@@ -132,9 +127,7 @@ class MongoJobRepository {
     };
   }
 
-  /**
-   * Aggregate duplicate jobs into groups
-   */
+
   async findDuplicates() {
     return await Job.aggregate([
       { $match: { isDuplicate: true } },
@@ -157,38 +150,27 @@ class MongoJobRepository {
     ]);
   }
 
-  /**
-   * Updates a job listing
-   */
+
   async updateJob(id, updates) {
     return await Job.findByIdAndUpdate(id, updates, { new: true }).exec();
   }
 
-  /**
-   * Find canonical jobs under the given company to check for duplicates
-   */
+
   async findCanonicalCandidatesByCompany(companyNormalized) {
-    return await Job.find({
-      companyNormalized,
-      isDuplicate: false,
-    }).exec();
+    return await Job.find({ companyNormalized, isDuplicate: false }).exec();
   }
 
-  /**
-   * Gets simple aggregate counts for dashboard statistics
-   */
+
   async getDashboardCounts() {
-    const stats = await Job.aggregate([
-      {
-        $facet: {
-          totalJobs: [{ $count: "count" }],
-          duplicateJobs: [{ $match: { isDuplicate: true } }, { $count: "count" }],
-          remoteJobs: [{ $match: { remote: true } }, { $count: "count" }],
-          companies: [{ $group: { _id: "$companyNormalized" } }, { $count: "count" }],
-          locations: [{ $group: { _id: "$locationNormalized" } }, { $count: "count" }],
-        },
+    const stats = await Job.aggregate([{
+      $facet: {
+        totalJobs: [{ $count: "count" }],
+        duplicateJobs: [{ $match: { isDuplicate: true } }, { $count: "count" }],
+        remoteJobs: [{ $match: { remote: true } }, { $count: "count" }],
+        companies: [{ $group: { _id: "$companyNormalized" } }, { $count: "count" }],
+        locations: [{ $group: { _id: "$locationNormalized" } }, { $count: "count" }],
       },
-    ]);
+    }]);
 
     const getValue = (facetResult) => facetResult[0]?.count || 0;
 
@@ -201,14 +183,10 @@ class MongoJobRepository {
     };
   }
 
-  /**
-   * Aggregates stats for visual charts (Dashboard & Analytics)
-   */
+
   async getAnalyticsStats() {
     // 1. Employment Type Distribution
-    const empTypeDist = await Job.aggregate([
-      { $group: { _id: "$employmentType", count: { $sum: 1 } } }
-    ]);
+    const empTypeDist = await Job.aggregate([{ $group: { _id: "$employmentType", count: { $sum: 1 } } }]);
 
     // 2. Top Hiring Companies (Canonical only, to prevent duplicate inflate)
     const topCompanies = await Job.aggregate([
@@ -222,7 +200,8 @@ class MongoJobRepository {
     // 3. Salary distribution by currency
     const salaryRanges = await Job.aggregate([
       { $match: { salaryMin: { $ne: null } } },
-      { $group: {
+      {
+        $group: {
           _id: "$currency",
           avgMinSalary: { $avg: "$salaryMin" },
           avgMaxSalary: { $avg: "$salaryMax" },
@@ -254,13 +233,9 @@ class MongoJobRepository {
       employmentTypeDistribution[item._id] = item.count;
     });
 
-    return {
-      employmentTypeDistribution,
-      topCompanies,
-      salaryRanges,
-      skillsFreq,
-      recentJobs,
-    };
+
+    return { employmentTypeDistribution, topCompanies, salaryRanges, skillsFreq, recentJobs };
+
   }
 }
 

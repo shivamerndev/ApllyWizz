@@ -40,10 +40,10 @@ export const jobsApi = apiSlice.injectEndpoints({
       invalidatesTags: ["JobsList", "JobsStats", "DuplicatesList"],
     }),
     tailorResume: builder.mutation({
-      query: ({ resumeText, jobId }) => ({
+      query: (body) => ({
         url: "/resume/tailor",
         method: "POST",
-        body: { resumeText, jobId },
+        body,
       }),
     }),
   }),

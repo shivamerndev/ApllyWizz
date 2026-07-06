@@ -1,18 +1,14 @@
 import {
-  normalizeCompany,
-  parseLocationAndRemote,
-  parseEmploymentType,
-  parseExperience,
-  parseSalary,
-  parseSkills,
-  parsePostedDate,
-} from "./dataNormalizer.js";
+  normalizeCompany, parseLocationAndRemote, parseEmploymentType, parseExperience, parseSalary, parseSkills, parsePostedDate} from "./dataNormalizer.js";
 import { jaroWinkler, jaccardSimilarity } from "./similarity.js";
+
 
 // Helper assertions
 const assertEqual = (actual, expected, testName) => {
+
   const actualStr = JSON.stringify(actual);
   const expectedStr = JSON.stringify(expected);
+
   if (actualStr === expectedStr) {
     console.log(`✅ PASS: ${testName}`);
   } else {
@@ -106,8 +102,7 @@ assertEqual(diffDays <= 2, true, "PostedDate: '2 days ago' parse verification");
 // 8. Similarity matching tests
 assertNear(jaroWinkler("Software Engineer", "Software Developer"), 0.85, 0.05, "Similarity: Jaro-Winkler for titles");
 assertNear(jaroWinkler("React Developer", "React Developer"), 1.0, 0.01, "Similarity: Jaro-Winkler identity");
-assertNear(
-  jaccardSimilarity("requires react and nodejs skills", "nodejs and react skills required"),
+assertNear(jaccardSimilarity("requires react and nodejs skills", "nodejs and react skills required"),
   0.67,
   0.05,
   "Similarity: Jaccard set overlap"
