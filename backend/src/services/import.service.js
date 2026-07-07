@@ -1,6 +1,8 @@
 import { parseExcelBuffer } from "../utils/xlsx.utils.js";
 import { normalizeJobRow } from "../utils/dataNormalizer.js";
 import { jaroWinkler, jaccardSimilarity } from "../utils/similarity.js";
+import MongoJobRepository from "../repository/mongo.job.js"
+
 
 /**
  * Imports jobs from an uploaded Excel spreadsheet buffer

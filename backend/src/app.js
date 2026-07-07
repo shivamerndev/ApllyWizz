@@ -65,14 +65,13 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1", jobRouter);
 
 
-/**
- * 404 Route Not Found Middleware
- */
-app.use("*notfound", (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
+
+app.use(express.static("dist"))
+
+app.use("*client", (req, res) => {
+  res.sendFile("index.html",{
+    root : "dist"
+  })
 });
 
 /**

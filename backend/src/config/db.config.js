@@ -1,5 +1,8 @@
 import { connect } from "mongoose";
 import { MONGO_URI } from "./env.config.js"
+import dns from "dns"
+
+dns.setServers(["8.8.8.8"])
 
 async function connectDB() {
 
@@ -7,8 +10,8 @@ async function connectDB() {
         await connect(MONGO_URI)
         console.log("Database connected successfully")
     } catch (err) {
-        process.exit(1)
         console.log(err.message)
+        process.exit(1)
     }
 }
 export default connectDB;
