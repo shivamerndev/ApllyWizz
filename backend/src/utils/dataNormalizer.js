@@ -1,32 +1,21 @@
-/**
- * Data Normalizer Utility for Applywizz
- */
 
-/**
- * Standardizes spacing and trims string
- */
 export function cleanString(str) {
   if (typeof str !== "string") return "";
   return str.replace(/\s+/g, " ").trim();
 }
 
-/**
- * Normalizes company name (lowercase, removes suffixes like LLC, Inc., Ltd.)
- */
+
 export function normalizeCompany(company) {
   const clean = cleanString(company)
     .replace(/[^\w\s]/g, "") // remove punctuation first
     .toLowerCase();
-  // Remove common company suffixes
   return clean
     .replace(/\b(llc|inc|corp|co|corporation|ltd|gmbh|co\s+ltd|pvt\s+ltd|pvt|limited|sa|ag)\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-/**
- * Standardizes location, extracts remote status
- */
+
 export function parseLocationAndRemote(locationRaw) {
   const raw = cleanString(locationRaw);
   if (!raw) {
@@ -44,9 +33,7 @@ export function parseLocationAndRemote(locationRaw) {
   };
 }
 
-/**
- * Maps messy employment type strings to standard values
- */
+
 export function parseEmploymentType(typeRaw) {
   const raw = cleanString(typeRaw).toLowerCase();
   if (!raw) return "Full-time";
@@ -70,9 +57,7 @@ export function parseEmploymentType(typeRaw) {
   return "Other";
 }
 
-/**
- * Parses experience string to extract min and max years
- */
+
 export function parseExperience(expRaw) {
   const raw = cleanString(expRaw);
   if (!raw) {
@@ -123,9 +108,7 @@ export function parseExperience(expRaw) {
   };
 }
 
-/**
- * Parses salary string to extract min, max, and currency
- */
+
 export function parseSalary(salaryRaw) {
   const raw = cleanString(salaryRaw);
   if (!raw) {
@@ -160,7 +143,6 @@ export function parseSalary(salaryRaw) {
   let min = null;
   let max = null;
 
-  // Regex to match ranges e.g. "80,000 - 120,000" or "80k - 120k" or "$80K - $120K"
   const rangeRegex = /(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*[Kk]?)\s*(?:-|TO)\s*(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*[Kk]?)/;
   const rangeMatch = normalized.match(rangeRegex);
 
@@ -168,7 +150,6 @@ export function parseSalary(salaryRaw) {
     min = cleanNumberStr(rangeMatch[1]);
     max = cleanNumberStr(rangeMatch[2]);
   } else {
-    // Regex for single number e.g. "100,000" or "80k"
     const singleRegex = /(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*[Kk]?)/;
     const singleMatch = normalized.match(singleRegex);
     if (singleMatch) {
@@ -185,9 +166,7 @@ export function parseSalary(salaryRaw) {
   };
 }
 
-/**
- * Parses skill string to normalized array
- */
+
 export function parseSkills(skillsRaw) {
   if (Array.isArray(skillsRaw)) {
     const cleanSkills = skillsRaw.map(s => cleanString(s)).filter(Boolean);
@@ -200,7 +179,6 @@ export function parseSkills(skillsRaw) {
   const raw = cleanString(skillsRaw);
   if (!raw) return { skills: [], skillsNormalized: [] };
 
-  // Split by common delimiters
   const list = raw
     .split(/[,;|/\t]+/)
     .map(s => cleanString(s))
@@ -212,9 +190,7 @@ export function parseSkills(skillsRaw) {
   };
 }
 
-/**
- * Parses date string or Excel date value to Javascript Date object
- */
+
 export function parsePostedDate(dateRaw) {
   if (!dateRaw) return new Date();
 

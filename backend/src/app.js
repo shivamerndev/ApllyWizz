@@ -66,11 +66,11 @@ app.use("/api/v1", jobRouter);
 
 
 
-app.use(express.static("dist"))
+app.use(express.static("public"))
 
 app.use("*client", (req, res) => {
   res.sendFile("index.html",{
-    root : "dist"
+    root : "public"
   })
 });
 
