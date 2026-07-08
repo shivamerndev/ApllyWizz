@@ -1,11 +1,15 @@
 import { apiSlice } from "../../../store/apiSlice.js";
 
 export const jobsApi = apiSlice.injectEndpoints({
+
   endpoints: (builder) => ({
+
     getDashboardStats: builder.query({
       query: () => "/dashboard",
       providesTags: ["JobsStats"],
     }),
+
+
     getJobs: builder.query({
       query: (params) => ({
         url: "/jobs",
@@ -14,14 +18,20 @@ export const jobsApi = apiSlice.injectEndpoints({
       }),
       providesTags: ["JobsList"],
     }),
+
+
     getJobDetails: builder.query({
       query: (id) => `/jobs/${id}`,
       providesTags: (result, error, id) => [{ type: "JobDetails", id }],
     }),
+
+
     getDuplicates: builder.query({
       query: () => "/duplicates",
       providesTags: ["DuplicatesList"],
     }),
+
+
     resolveDuplicate: builder.mutation({
       query: ({ id, action }) => ({
         url: `/duplicates/${id}`,
@@ -30,6 +40,8 @@ export const jobsApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["DuplicatesList", "JobsList", "JobsStats", "JobDetails"],
     }),
+
+
     importJobs: builder.mutation({
       query: (formData) => ({
         url: "/jobs/import",
@@ -39,6 +51,8 @@ export const jobsApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["JobsList", "JobsStats", "DuplicatesList"],
     }),
+
+
     tailorResume: builder.mutation({
       query: (body) => ({
         url: "/resume/tailor",
@@ -46,16 +60,14 @@ export const jobsApi = apiSlice.injectEndpoints({
         body,
       }),
     }),
+
   }),
+
   overrideExisting: false,
 });
 
-export const {
-  useGetDashboardStatsQuery,
-  useGetJobsQuery,
-  useGetJobDetailsQuery,
-  useGetDuplicatesQuery,
-  useResolveDuplicateMutation,
-  useImportJobsMutation,
-  useTailorResumeMutation,
-} = jobsApi;
+
+export const { useGetDashboardStatsQuery, useGetJobsQuery,
+  useGetJobDetailsQuery, useGetDuplicatesQuery,
+  useResolveDuplicateMutation, useImportJobsMutation,
+  useTailorResumeMutation } = jobsApi;

@@ -5,6 +5,7 @@ import xlsx from "xlsx";
  * @param {Buffer} fileBuffer
  * @returns {{ rawRows: Array<Object>, sheetName: string }}
  */
+
 export function parseExcelBuffer(fileBuffer) {
   let workbook;
   try {

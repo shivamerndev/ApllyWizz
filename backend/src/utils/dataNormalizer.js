@@ -1,251 +1,134 @@
-
 export function cleanString(str) {
-  if (typeof str !== "string") return "";
-  return str.replace(/\s+/g, " ").trim();
+  return typeof str === "string" ? str.replace(/\s+/g, " ").trim() : "";
 }
 
-
 export function normalizeCompany(company) {
-  const clean = cleanString(company)
-    .replace(/[^\w\s]/g, "") // remove punctuation first
-    .toLowerCase();
-  return clean
-    .replace(/\b(llc|inc|corp|co|corporation|ltd|gmbh|co\s+ltd|pvt\s+ltd|pvt|limited|sa|ag)\b/gi, "")
+  return cleanString(company)
+    .replace(/[^\w\s]/g, "")
+    .toLowerCase()
+    .replace(/\b(llc|inc|corp|co|corporation|ltd|gmbh|co\s+ltd|pvt\s+ltd|pvt|limited|sa|ag)\b/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-
 export function parseLocationAndRemote(locationRaw) {
   const raw = cleanString(locationRaw);
-  if (!raw) {
-    return { location: "Not Specified", locationNormalized: "not specified", remote: false };
-  }
-
+  if (!raw) return { location: "Not Specified", locationNormalized: "not specified", remote: false };
   const normalized = raw.toLowerCase();
-  const remoteKeywords = ["remote", "work from home", "wfh", "telecommute", "anywhere"];
-  const isRemote = remoteKeywords.some(keyword => normalized.includes(keyword));
-
   return {
     location: raw,
     locationNormalized: normalized,
-    remote: isRemote,
+    remote: /remote|work from home|wfh|telecommute|anywhere/.test(normalized),
   };
 }
-
 
 export function parseEmploymentType(typeRaw) {
   const raw = cleanString(typeRaw).toLowerCase();
   if (!raw) return "Full-time";
-
-  if (raw.includes("full") || raw.includes("ft") || raw.includes("permanent")) {
-    return "Full-time";
-  }
-  if (raw.includes("part") || raw.includes("pt")) {
-    return "Part-time";
-  }
-  if (raw.includes("contract") || raw.includes("temp") || raw.includes("freelance") || raw.includes("consultant")) {
-    return "Contract";
-  }
-  if (raw.includes("intern") || raw.includes("apprentice")) {
-    return "Internship";
-  }
-  if (raw.includes("temporary")) {
-    return "Temporary";
-  }
-
-  return "Other";
+  if (/full|ft|permanent/.test(raw)) return "Full-time";
+  if (/part|pt/.test(raw)) return "Part-time";
+  if (/contract|temp|freelance|consultant/.test(raw)) return "Contract";
+  if (/intern|apprentice/.test(raw)) return "Internship";
+  return raw.includes("temporary") ? "Temporary" : "Other";
 }
-
 
 export function parseExperience(expRaw) {
   const raw = cleanString(expRaw);
-  if (!raw) {
-    return { experience: "Not Specified", experienceMin: null, experienceMax: null };
-  }
+  if (!raw) return { experience: "Not Specified", experienceMin: null, experienceMax: null };
 
-  const normalized = raw.toLowerCase();
-  let min = null;
-  let max = null;
-
-  // Handle formats like "Entry level", "Fresher", "No experience"
-  if (normalized.includes("entry") || normalized.includes("fresher") || normalized.includes("no experience") || normalized.includes("0 years")) {
+  const norm = raw.toLowerCase();
+  if (/entry|fresher|no experience|0 years/.test(norm)) {
     return { experience: raw, experienceMin: 0, experienceMax: 1 };
   }
 
-  // Handle format "5-10 years" or "3 to 5 yrs"
-  const rangeMatch = normalized.match(/(\d+)\s*(?:-|to)\s*(\d+)\s*(?:years|yrs|yr|year)?/);
-  if (rangeMatch) {
-    min = parseInt(rangeMatch[1], 10);
-    max = parseInt(rangeMatch[2], 10);
-  } else {
-    // Handle format "5+ years" or "5+ yrs"
-    const plusMatch = normalized.match(/(\d+)\s*\+/);
-    if (plusMatch) {
-      min = parseInt(plusMatch[1], 10);
-      max = null;
-    } else {
-      // Handle format "up to 5 years"
-      const upToMatch = normalized.match(/(?:up to|under|max)\s*(\d+)/);
-      if (upToMatch) {
-        min = 0;
-        max = parseInt(upToMatch[1], 10);
-      } else {
-        // Just extract the first number found
-        const singleNumberMatch = normalized.match(/(\d+)/);
-        if (singleNumberMatch) {
-          min = parseInt(singleNumberMatch[1], 10);
-          max = min;
-        }
-      }
-    }
+  let min = null, max = null, match;
+  if ((match = norm.match(/(\d+)\s*(?:-|to)\s*(\d+)/))) {
+    min = parseInt(match[1], 10);
+    max = parseInt(match[2], 10);
+  } else if ((match = norm.match(/(\d+)\s*\+/))) {
+    min = parseInt(match[1], 10);
+  } else if ((match = norm.match(/(?:up to|under|max)\s*(\d+)/))) {
+    min = 0;
+    max = parseInt(match[1], 10);
+  } else if ((match = norm.match(/(\d+)/))) {
+    min = max = parseInt(match[1], 10);
   }
 
-  return {
-    experience: raw,
-    experienceMin: min,
-    experienceMax: max,
-  };
+  return { experience: raw, experienceMin: min, experienceMax: max };
 }
-
 
 export function parseSalary(salaryRaw) {
   const raw = cleanString(salaryRaw);
-  if (!raw) {
-    return { salary: "Not Specified", salaryMin: null, salaryMax: null, currency: "USD" };
-  }
+  if (!raw) return { salary: "Not Specified", salaryMin: null, salaryMax: null, currency: "USD" };
 
-  const normalized = raw.toUpperCase();
-  
-  // Extract currency
-  let currency = "USD";
-  if (normalized.includes("₹") || normalized.includes("INR") || normalized.includes("RS") || normalized.includes("RUPEE")) {
-    currency = "INR";
-  } else if (normalized.includes("£") || normalized.includes("GBP")) {
-    currency = "GBP";
-  } else if (normalized.includes("€") || normalized.includes("EUR")) {
-    currency = "EUR";
-  } else if (normalized.includes("C$") || normalized.includes("CAD")) {
-    currency = "CAD";
-  } else if (normalized.includes("A$") || normalized.includes("AUD")) {
-    currency = "AUD";
-  }
+  const norm = raw.toUpperCase();
+  const currency = /₹|INR|RS|RUPEE/.test(norm) ? "INR"
+    : /£|GBP/.test(norm) ? "GBP"
+      : /€|EUR/.test(norm) ? "EUR"
+        : /C\$|CAD/.test(norm) ? "CAD"
+          : /A\$|AUD/.test(norm) ? "AUD"
+            : "USD";
 
-  // Clean numbers: convert K to 1000, remove commas, etc.
-  const cleanNumberStr = (numStr) => {
-    let cleaned = numStr.replace(/,/g, "").trim();
-    if (cleaned.endsWith("K")) {
-      return parseFloat(cleaned.slice(0, -1)) * 1000;
-    }
-    return parseFloat(cleaned);
+  const cleanNum = (str) => {
+    const clean = str.replace(/,/g, "").trim();
+    return parseFloat(clean) * (clean.endsWith("K") ? 1000 : 1);
   };
 
-  let min = null;
-  let max = null;
-
-  const rangeRegex = /(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*[Kk]?)\s*(?:-|TO)\s*(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*[Kk]?)/;
-  const rangeMatch = normalized.match(rangeRegex);
+  let min = null, max = null;
+  const rangeMatch = norm.match(/(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*K?)\s*(?:-|TO)\s*(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*K?)/);
 
   if (rangeMatch) {
-    min = cleanNumberStr(rangeMatch[1]);
-    max = cleanNumberStr(rangeMatch[2]);
+    min = cleanNum(rangeMatch[1]);
+    max = cleanNum(rangeMatch[2]);
   } else {
-    const singleRegex = /(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*[Kk]?)/;
-    const singleMatch = normalized.match(singleRegex);
-    if (singleMatch) {
-      min = cleanNumberStr(singleMatch[1]);
-      max = min;
-    }
+    const singleMatch = norm.match(/(?:[\$£€₹C\$A\$]\s*)?([\d,]+(?:\.\d+)?\s*K?)/);
+    if (singleMatch) min = max = cleanNum(singleMatch[1]);
   }
 
-  return {
-    salary: raw,
-    salaryMin: min,
-    salaryMax: max,
-    currency,
-  };
+  return { salary: raw, salaryMin: min, salaryMax: max, currency };
 }
-
 
 export function parseSkills(skillsRaw) {
+  let list = [];
   if (Array.isArray(skillsRaw)) {
-    const cleanSkills = skillsRaw.map(s => cleanString(s)).filter(Boolean);
-    return {
-      skills: cleanSkills,
-      skillsNormalized: cleanSkills.map(s => s.toLowerCase()),
-    };
+    list = skillsRaw.map(s => cleanString(s)).filter(Boolean);
+  } else {
+    const raw = cleanString(skillsRaw);
+    if (raw) list = raw.split(/[,;|/\t]+/).map(s => cleanString(s)).filter(Boolean);
   }
-
-  const raw = cleanString(skillsRaw);
-  if (!raw) return { skills: [], skillsNormalized: [] };
-
-  const list = raw
-    .split(/[,;|/\t]+/)
-    .map(s => cleanString(s))
-    .filter(Boolean);
-
-  return {
-    skills: list,
-    skillsNormalized: list.map(s => s.toLowerCase()),
-  };
+  return { skills: list, skillsNormalized: list.map(s => s.toLowerCase()) };
 }
-
 
 export function parsePostedDate(dateRaw) {
   if (!dateRaw) return new Date();
-
-  // If Excel serial number format for date
-  if (typeof dateRaw === "number") {
-    // Excel dates start on Jan 1 1900
-    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-    const msInDay = 24 * 60 * 60 * 1000;
-    return new Date(excelEpoch.getTime() + dateRaw * msInDay);
-  }
-
+  if (typeof dateRaw === "number") return new Date(Date.UTC(1899, 11, 30) + dateRaw * 86400000);
   if (dateRaw instanceof Date) return dateRaw;
 
   const rawStr = cleanString(dateRaw);
-  let parsed = new Date(rawStr);
+  const parsed = new Date(rawStr);
+  if (!isNaN(parsed.getTime())) return parsed;
 
-  if (!isNaN(parsed.getTime())) {
-    return parsed;
-  }
-
-  // Handle relative strings: "x days ago", "yesterday", "today"
-  const normalized = rawStr.toLowerCase();
+  const norm = rawStr.toLowerCase();
   const now = new Date();
-
-  if (normalized.includes("today")) {
-    return now;
-  }
-  if (normalized.includes("yesterday")) {
+  if (norm.includes("today")) return now;
+  if (norm.includes("yesterday")) {
     now.setDate(now.getDate() - 1);
     return now;
   }
 
-  const daysAgoMatch = normalized.match(/(\d+)\s+days?\s+ago/);
-  if (daysAgoMatch) {
-    const days = parseInt(daysAgoMatch[1], 10);
-    now.setDate(now.getDate() - days);
-    return now;
+  let match;
+  if ((match = norm.match(/(\d+)\s+days?\s+ago/))) {
+    now.setDate(now.getDate() - parseInt(match[1], 10));
+  } else if ((match = norm.match(/(\d+)\s+weeks?\s+ago/))) {
+    now.setDate(now.getDate() - parseInt(match[1], 10) * 7);
+  } else if ((match = norm.match(/(\d+)\s+months?\s+ago/))) {
+    now.setMonth(now.getMonth() - parseInt(match[1], 10));
+  } else {
+    return new Date();
   }
-
-  const weeksAgoMatch = normalized.match(/(\d+)\s+weeks?\s+ago/);
-  if (weeksAgoMatch) {
-    const weeks = parseInt(weeksAgoMatch[1], 10);
-    now.setDate(now.getDate() - weeks * 7);
-    return now;
-  }
-
-  const monthsAgoMatch = normalized.match(/(\d+)\s+months?\s+ago/);
-  if (monthsAgoMatch) {
-    const months = parseInt(monthsAgoMatch[1], 10);
-    now.setMonth(now.getMonth() - months);
-    return now;
-  }
-
-  return new Date(); // default fallback
+  return now;
 }
+
 
 /**
  * Full row normalization engine
@@ -253,40 +136,26 @@ export function parsePostedDate(dateRaw) {
 export function normalizeJobRow(row) {
   const title = cleanString(row.title || row.jobTitle || row.Title);
   const company = cleanString(row.company || row.companyName || row.Company);
-  
+
   if (!title || !company) {
     throw new Error("Missing required fields: Title and Company are required.");
   }
-
-  const { location, locationNormalized, remote } = parseLocationAndRemote(row.location || row.Location);
-  const { skills, skillsNormalized } = parseSkills(row.skills || row.Skills || row.keySkills || row.skillsRequired);
-  const { salary, salaryMin, salaryMax, currency } = parseSalary(row.salary || row.Salary || row.compensation);
-  const { experience, experienceMin, experienceMax } = parseExperience(row.experience || row.Experience || row.expRequired);
-  const employmentType = parseEmploymentType(row.employmentType || row.jobType || row.EmploymentType);
-  const postedDate = parsePostedDate(row.postedDate || row.posted || row.PostedDate || row.datePosted);
 
   return {
     title,
     titleNormalized: title.toLowerCase(),
     company,
     companyNormalized: normalizeCompany(company),
-    location,
-    locationNormalized,
-    remote,
+    ...parseLocationAndRemote(row.location || row.Location),
     description: cleanString(row.description || row.jobDescription || row.Description || "No description provided."),
-    skills,
-    skillsNormalized,
-    salary,
-    salaryMin,
-    salaryMax,
-    currency,
-    experience,
-    experienceMin,
-    experienceMax,
-    employmentType,
-    postedDate,
+    ...parseSkills(row.skills || row.Skills || row.keySkills || row.skillsRequired),
+    ...parseSalary(row.salary || row.Salary || row.compensation),
+    ...parseExperience(row.experience || row.Experience || row.expRequired),
+    employmentType: parseEmploymentType(row.employmentType || row.jobType || row.EmploymentType),
+    postedDate: parsePostedDate(row.postedDate || row.posted || row.PostedDate || row.datePosted),
     source: cleanString(row.source || row.Source || "Imported Spreadsheet"),
     sourceUrl: cleanString(row.sourceUrl || row.applyUrl || row.SourceUrl || ""),
     department: cleanString(row.department || row.Department || "General"),
   };
 }
+
