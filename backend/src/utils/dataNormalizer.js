@@ -1,15 +1,17 @@
 export function cleanString(str) {
-  return typeof str === "string" ? str.replace(/\s+/g, " ").trim() : "";
+  return typeof str === "string" ? str.replace(/\s+/g, " ").trim() : ""; // "Microsoft Corporation, Inc."
 }
 
-export function normalizeCompany(company) {
-  return cleanString(company)
+export function normalizeCompany(company) {  // "  Microsoft   Corporation, Inc.  "
+
+  return cleanString(company) 
     .replace(/[^\w\s]/g, "")
     .toLowerCase()
     .replace(/\b(llc|inc|corp|co|corporation|ltd|gmbh|co\s+ltd|pvt\s+ltd|pvt|limited|sa|ag)\b/g, "")
     .replace(/\s+/g, " ")
     .trim();
-}
+
+} // "microsoft"
 
 export function parseLocationAndRemote(locationRaw) {
   const raw = cleanString(locationRaw);
